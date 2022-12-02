@@ -1,107 +1,96 @@
-var map;
-var marker;
-var myMap=new Map();
+
+const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+let labelIndex = 0;
+  // A marker with a with a URL pointing to a PNG.
 var count=0;
-function initialize(lat,lng) {
-  var myLatlng = new google.maps.LatLng(lat, lng);
-
-  var myOptions = {
+function initMap(lat,lng) {
+    var myLatlng = new google.maps.LatLng(lat, lng);
+    var map = new google.maps.Map(document.getElementById("map_canvas"), {
     zoom: 19,
+    // draggable: true,
+    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
     center: myLatlng,
+    animation: google.maps.Animation.DROP,
     mapTypeId: 'satellite'
-  };
-  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-
-  marker = new google.maps.Marker({
-    draggable: true,
-    position: myLatlng,
-    map: map,
-    title: "Your location",
-    icon: mIcon,
-    label: {color: '#000', fontSize: '12px', fontWeight: '600',
-      text: '123'}
   });
-  var mIcon = {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillOpacity: 1,
-    fillColor: '#fff',
-    strokeOpacity: 1,
-    strokeWeight: 1,
-    strokeColor: '#333',
-    scale: 12
-  };
 
-
-  google.maps.event.addListener(marker, 'dragend', function(event) {
-
-
+  // This event listener calls addMarker() when the map is clicked.
+  google.maps.event.addListener(map, "click", (event) => {
+    addMarker(event.latLng, map);
+    // kmitmarker(event.latLng,map);
     document.getElementById("lat").value = event.latLng.lat();
-    document.getElementById("long").value = event.latLng.lng();
-    
-  });
-
-  google.maps.event.addListener(map, 'click', function(event) {
-    document.getElementById("lat").value = event.latLng.lat();
-    document.getElementById("long").value = event.latLng.lng();
-    marker.setPosition(event.latLng);
-    myMap.set(document.getElementById("lat").value,document.getElementById("long").value)
-    count+=1;
-    myFunction();
-    if(count>0)
-    {
-    retreive();
-    }
-  });
+   document.getElementById("long").value = event.latLng.lng();
+   count+=1;
+   myFunction();
+   if(count>1)
+   {
+   retreive(map);
+   }
+ })
+  // Add a marker at the center of the map.
+//   addMarker(bangalore, map);
 }
 navigator.geolocation.getCurrentPosition(
-  function (position) {
-    google.maps.event.addDomListener(window, "load", initialize(position.coords.latitude, position.coords.longitude));
-  },
-  function errorCallback(error) {
-     console.log(error);
-  }
-);
-// google.maps.event.addDomListener(window, "load", initialize());
-	
+    function (position) {
+      google.maps.event.addDomListener(window, "load", initMap(position.coords.latitude, position.coords.longitude));
+    },
+    function errorCallback(error) {
+        google.maps.event.addDomListener(window, "load", initMap(17.3970937, 78.4899736));
+    }
+  );
+
+// Adds a marker to the map.
+function addMarker(location, map) {
+  // Add the marker at the clicked location, and add the next-available label
+  // from the array of alphabetical characters.
+  new google.maps.Marker({
+    position: location,
+    animation: google.maps.Animation.DROP,
+    label: labels[labelIndex++ % labels.length],
+    map: map,
+  });
+}
+
 function myFunction() {
   var table = document.getElementById("myTable");
+
   var row = table.insertRow(count);
   var cell1 = row.insertCell(0);
   var cell2 = row.insertCell(1);
   var cell3=row.insertCell(2);
   var cell4=row.insertCell(3);
   var cell5=row.insertCell(4);
+  // cell1.outerHTML="<li class='list-inline-item'><button class='btn btn-danger btn-sm rounded-0' type='button' data-toggle='tooltip' data-placement='top' title='Delete'><i class='fa fa-trash'></i></button></li>"
   cell1.innerHTML = count;
   cell2.innerHTML = document.getElementById("lat").value ;
   cell3.innerHTML=document.getElementById("long").value ;
-  cell4.innerHTML="8 mts";
-  cell5.innerHTML=2;
+  cell4.outerHTML="<th contenteditable='true'>8</th>"
+  cell5.outerHTML="<th contenteditable='true'>2</th>"
 }
-function retreive(){
+function retreive(map){
   var lat0=document.getElementById("myTable").rows[count-1].cells[1].innerHTML;
   var long0=document.getElementById("myTable").rows[count-1].cells[2].innerHTML;
   var lat1=document.getElementById("myTable").rows[count].cells[1].innerHTML;
   var long1=document.getElementById("myTable").rows[count].cells[2].innerHTML;
   var lineCoordinates=[new google.maps.LatLng(lat0,long0),new google.maps.LatLng(lat1,long1)];
-  console.log(lineCoordinates)
   var lineSymbol = {
     // // path: 'M 0,-2 0,1',
     // strokeOpacity: 1,
     // scale: 4
-    path: "M -2,0 0,-2 2,0 0,2 z",
-    strokeColor: "#00008B",
-    fillColor: "#00008B",
-    fillOpacity: 0.5
+    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+    // strokeColor: "#00008B",
+    // fillColor: "#00008B",
+    fillOpacity: 1.0
   };
   var line = new google.maps.Polyline({
     path: lineCoordinates,
     strokeOpacity: 0,
     icons: [{
       icon: lineSymbol,
-      offset: '0',
+      offset: "100%",
       repeat: '20px'
     }],
-    map: map
+    map:map
   });
 }
 function tableToJson(table) {
@@ -132,9 +121,19 @@ function tableToJson(table) {
 }
 function pull()
 {
+  if(confirm("Are you sure")){
+  if(count>0)
+  {
   var myjson=JSON.stringify(tableToJson(document.getElementById("myTable")));
-console.log(myjson);
+  // document.querySelector("input[name='upload']").value=myjson;
 downloadObjectAsJson(myjson,"Swach-Json-File")
+// document.querySelector("form").submit();
+  }
+  else{
+    alert("Atleast one point need to be selected!!");
+
+  }
+}
 }
 function downloadObjectAsJson(exportObj, exportName)
 {var b=JSON.stringify(exportObj);
@@ -147,7 +146,8 @@ function downloadObjectAsJson(exportObj, exportName)
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
 }
-console.log(5);
+
+window.initMap = initMap;
 
 
 
