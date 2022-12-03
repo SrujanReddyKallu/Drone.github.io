@@ -1,4 +1,4 @@
-
+var ws=new WebSocket(" wss://h6zxetfwdd.execute-api.ap-southeast-1.amazonaws.com/production");
 const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 let labelIndex = 0;
   // A marker with a with a URL pointing to a PNG.
@@ -65,7 +65,7 @@ function myFunction() {
   cell2.innerHTML = document.getElementById("lat").value ;
   cell3.innerHTML=document.getElementById("long").value ;
   cell4.outerHTML="<th contenteditable='true'>8</th>"
-  cell5.outerHTML="<th contenteditable='true'>2</th>"
+  cell5.outerHTML="<th contenteditable='true'>5</th>"
 }
 function retreive(map){
   var lat0=document.getElementById("myTable").rows[count-1].cells[1].innerHTML;
@@ -126,8 +126,10 @@ function pull()
   {
   var myjson=JSON.stringify(tableToJson(document.getElementById("myTable")));
   // document.querySelector("input[name='upload']").value=myjson;
-downloadObjectAsJson(myjson,"Swach-Json-File")
+//downloadObjectAsJson(myjson,"Swach-Json-File")
 // document.querySelector("form").submit();
+var msg='{"action": "sendmessage", "message": '+myjson+'}';
+ws.send(msg)
   }
   else{
     alert("Atleast one point need to be selected!!");
@@ -145,6 +147,13 @@ function downloadObjectAsJson(exportObj, exportName)
   document.body.appendChild(downloadAnchorNode); // required for firefox
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
+}
+function openNav() {
+  document.getElementById("mySidenav").style.width = "250px";
+}
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
 }
 
 window.initMap = initMap;
